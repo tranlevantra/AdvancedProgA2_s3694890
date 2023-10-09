@@ -1,3 +1,4 @@
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,6 +18,13 @@ public class PostsTableView {
         }
 
         posts.subList(0, actualQuantity);
+        
+        this.tableView = setTableView(posts);	
+		
+	}
+	
+	public TableView<Post> setTableView(List<Post> posts) {
+		tableView = new TableView<>();
 		
 		for(Post post : posts) {
 			tableView.getItems().add(post);
@@ -32,20 +40,19 @@ public class PostsTableView {
 		TableColumn<Post, Integer> likesColumn = new TableColumn<>("Likes");
 		likesColumn.setCellValueFactory(new PropertyValueFactory<>("likes"));
 		
-		TableColumn<Post, Integer> sharesColumn = new TableColumn<>("Content");
+		TableColumn<Post, Integer> sharesColumn = new TableColumn<>("Shares");
 		sharesColumn.setCellValueFactory(new PropertyValueFactory<>("shares"));
 		
 		TableColumn<Post, LocalDateTime> datetimeColumn = new TableColumn<>("Date & Time");
 		datetimeColumn.setCellValueFactory(new PropertyValueFactory<>("datetime"));
 
-		
 		tableView.getColumns().add(postIDColumn);
 		tableView.getColumns().add(contentColumn);
 		tableView.getColumns().add(likesColumn);
 		tableView.getColumns().add(sharesColumn);
 		tableView.getColumns().add(datetimeColumn);
 		
-		
+		return tableView;
 	}
 	
 	
