@@ -1,25 +1,23 @@
 import javafx.event.ActionEvent;
-import javafx.scene.control.Button;
+import javafx.fxml.FXML;
 import javafx.stage.Stage;
 
-
 public class RegisterSceneController {
-	
-	
-private Stage primaryStage;
-	
+
+	private Stage primaryStage;
+
 	public void setPrimaryStage(Stage primaryStage) {
 		this.primaryStage = primaryStage;
 	}
 
-	public void goBackButtonHandler(ActionEvent event) {
+	@FXML
+	public void switchLogInScene(ActionEvent event) {
 		
-		
-		LogInScene imageViewerScene = new LogInScene(primaryStage);
-		
-		primaryStage.setTitle(imageViewerScene.getTitle());
-		primaryStage.setScene(imageViewerScene.getScene());
-		
-		primaryStage.show();
+		LogInScene logInScene = new LogInScene(primaryStage);
+		primaryStage.setTitle(logInScene.getTitle());
+		primaryStage.setScene(logInScene.getScene());
 
+		primaryStage.show();
+		
+	}
 }

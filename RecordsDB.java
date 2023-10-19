@@ -106,7 +106,6 @@ public class RecordsDB {
 	        // Then, insert the new user record
 	        try (PreparedStatement insertStmt = con.prepareStatement(updateUserquery)) {
 	            insertStmt.setString(1, this.user.getUsername());
-	            insertStmt.setString(2, this.user.getUserID());
 	            insertStmt.setString(3, this.user.getFirstname());
 	            insertStmt.setString(4, this.user.getLastname());
 	            insertStmt.setString(5, this.user.getPassword());

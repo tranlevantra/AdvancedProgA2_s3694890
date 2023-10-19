@@ -32,15 +32,13 @@ public class RegisterScene {
 			e.printStackTrace();
 		}
 				
-		RegisterScene controller = loader.getController();
+		RegisterSceneController controller = loader.getController();
 		controller.setPrimaryStage(primaryStage);
 		
 		Scene scene = new Scene(parentNode);
 		
 		return scene;
 		}
-
-	
 
 
 }

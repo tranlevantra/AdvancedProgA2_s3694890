@@ -1,6 +1,5 @@
 public class User {
     private String username;
-    private String userID;
     private String password;
     private String firstname;
     private String lastname;
@@ -8,9 +7,8 @@ public class User {
     public static final String usernameFormatter = "dd/MM/yyyyHH:mm";
     public static final String passwordFormatter = "[A-Z0-9]{6}";
 
-    public User(String username, String userID, String password, String firstname, String lastname) throws UserRegistrationException {
+    public User(String username, String password, String firstname, String lastname) throws UserRegistrationException {
         setUsername(username);
-        setUserID(userID);
         setPassword(password);
         setFirstname(firstname);
         setLastname(lastname);
@@ -57,22 +55,6 @@ public class User {
         return lastname;
     }
 
-
-    public String getUserID() {
-        return userID;
-    }
-
-    public void setUserID(String userID) throws UserRegistrationException {
-        if (userID == null || userID.isEmpty()) {
-            throw new UserRegistrationException("UserID cannot be empty");
-        }
-
-        if (userID.matches(usernameFormatter)) {
-            this.userID = userID;
-        } else {
-            throw new UserRegistrationException("Invalid userID format");
-        }
-    }
     
     public void setFirstname(String firstname) throws UserRegistrationException {
         this.firstname = formatAndTrimName(firstname);

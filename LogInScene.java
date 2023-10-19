@@ -11,7 +11,6 @@ public class LogInScene {
 	
 	private Scene scene;
 	
-	
 	public LogInScene(Stage primaryStage) {
 		this.primaryStage = primaryStage;
 		scene = null;
@@ -28,22 +27,26 @@ public class LogInScene {
 			return scene;
 		}
 		
-		//load FXML
+		// load FXML
 		FXMLLoader loader = new FXMLLoader(getClass().getResource("LogInScene.fxml"));
-		
+				
+		// load the FXML
 		Parent parentNode = null;
-		
 		try {
 			parentNode = loader.load();
-		} catch(IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		
 		LogInSceneController controller = loader.getController();
 		controller.setPrimaryStage(primaryStage);
+
 		
+		// create a scene
 		Scene scene = new Scene(parentNode);
 		
 		return scene;
-		}
+		
+	}
 
 }

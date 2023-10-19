@@ -10,8 +10,8 @@ public class Post {
     private int shares;
     private LocalDateTime datetime;
     
-
-
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    
     
     public Post(int postID, String content, String username, int likes, int shares, String formattedDatetime) throws CreatingPostException {
         setPostID(postID);
@@ -22,7 +22,7 @@ public class Post {
         setDatetime(formattedDatetime);
     }
     
-	public int getPostID() {
+	public Integer getPostID() {
 		return this.postID;
 	}
 
@@ -46,20 +46,19 @@ public class Post {
  
     }
 
-    public int getLikes() {
+    public Integer getLikes() {
         return this.likes;
     }
 
 
-    public int getShares() {
+    public Integer getShares() {
         return this.shares;
     }
 
-
-
-    public LocalDateTime getDatetime() {
-        return this.datetime;
+    public String getDatetime() {
+        return datetime.format(formatter);
     }
+
 
     
     public void setContent(String content) throws CreatingPostException {
