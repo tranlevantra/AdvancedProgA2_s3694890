@@ -27,15 +27,13 @@ public class Post {
 	}
 
     public void setPostID(int postID){
-        	this.postID = postID;
- 
+        this.postID = postID;
     }
       
 
     public String getContent() {
         return this.content;
     }
-
 
     public String getAuthor() {
         return this.author;
@@ -78,22 +76,21 @@ public class Post {
         checkPositiveInt(shares, "Shares must be a positive integer");
         this.shares = shares;
     }
-
-    public void setDatetime(String datetimeInput) throws CreatingPostException {
+    
+    public void setDatetime(String datetimeInput) throws CreatingPostException{
         try {
-            LocalDateTime parsedDatetime = LocalDateTime.parse(datetimeInput);
+            LocalDateTime parsedDatetime = LocalDateTime.parse(datetimeInput, formatter);
             this.datetime = parsedDatetime;
         } catch (DateTimeParseException e) {
-            throw new CreatingPostException("Invalid datetime format");
+        	throw new CreatingPostException("Invalid datetime format");
         }
     }
+    
     private void checkPositiveInt(int value, String errorMessage) throws CreatingPostException {
         if (value < 0) {
             throw new CreatingPostException(errorMessage);
         }
     }
-
-
 
 
 }

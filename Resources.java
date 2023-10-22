@@ -1,34 +1,38 @@
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import sqlitedb.DatabaseConnection;
 
 public class Resources {
-		
-	private HashMap<String, User> userMap = new HashMap<>();
-	private HashMap<Integer, Post> postMap = new HashMap<>();
-
 
 	private static final String deletePostQuery = "DELETE FROM Post WHERE postID = ?";
-	private static final String deleteUserQuery = "DELETE FROM User WHERE username = ?";
 	private static final String updateUserquery = "UPDATE User SET username = ?, password = ?, firstname = ?, lastname = ? WHERE username = ?";
-	private static final String updatePostQuery = "INSERT INTO Post (postID, content, author, likes, shares, datetime)" +
+	private static final String insertPostQuery = "INSERT INTO Post (postID, content, author, likes, shares, datetime)" +
 			" VALUES (?, ?, ?, ?, ?, ?)";
-	private static final String updateUserStatusQuery = "UPDATE User SET status = 'VIP' WHERE username = ?";
+	private static final String updateUserStatusQuery = "UPDATE User SET status = ? WHERE username = ?";
 	private static final String findAllPostQuery = "SELECT * FROM Post";
 	private static final String findAllUsersQuery = "SELECT * FROM User;";
 	private static final String updateAuthorInPostQuery = "UPDATE Post SET author = ? WHERE author = ?";
 	private static final String insertUserQuery = "INSERT INTO User (username, password, firstname, lastname, status) VALUES (?, ?, ?, ?, ?)";
-
-
 	
-	public void loadPostData() {
+	private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	
+	// Load PostMap
+	public HashMap<Integer, Post> loadPostData() {
+		HashMap<Integer, Post> postMap = new HashMap<>();
 	    try (Connection con = DatabaseConnection.getConnection();
 	         PreparedStatement preparedStatement = con.prepareStatement(findAllPostQuery)) {
 	        ResultSet resultSet = preparedStatement.executeQuery();
@@ -44,22 +48,21 @@ public class Resources {
 	            Post post;
 	            try {
 	                post = new Post(postID, content, author, likes, shares, datetime);
-	                this.postMap.put(postID, post);
+	                postMap.put(postID, post);
 	            } catch (CreatingPostException e) {
-	                // Handle exceptions related to post creation, if needed
 	                e.printStackTrace();
-	                // Skip this result and continue to the next one
 	                continue;
 	            }
 	        }
 	    } catch (SQLException e) {
-	        // Handle any SQL-related exceptions here
 	        e.printStackTrace();
 	    }
+		return postMap;
 	}
 
-	
-	public void loadUserData() {
+	//Load UserMap
+	public HashMap<String, User> loadUserData() {
+		HashMap<String, User> userMap = new HashMap<>();
 	    try (Connection con = DatabaseConnection.getConnection();
 	         PreparedStatement preparedStatement = con.prepareStatement(findAllUsersQuery)) {
 	        ResultSet resultSet = preparedStatement.executeQuery();
@@ -71,7 +74,6 @@ public class Resources {
 	            String lastname = resultSet.getString("lastname");
 	            String status = resultSet.getString("status");
 
-	            // Check the status and create the appropriate user instance
 	            User user;
 	            try {
 	                if ("VIP".equals(status)) {
@@ -80,96 +82,60 @@ public class Resources {
 	                    user = new User(username, password, firstname, lastname);
 	                }
 	            
-	                // Add the user to the userMap
 	                userMap.put(username, user);
 	            } catch (UserRegistrationException e) {
-	                // Handle exceptions related to user registration, if needed
 	                e.printStackTrace();
-	                // Skip this result and continue to the next one
 	                continue;
 	            }
 	        }
 	    } catch (SQLException e) {
-	        // Handle any SQL-related exceptions here
 	        e.printStackTrace();
 	    }
+		return userMap;
 	}
 	
-	public User findUser(String username) {
-		
-		User user = userMap.get(username);	
-		return user;
-	}
-	
-	
-	public void updateUserInforDB(User user) {
-	    try (Connection con = DatabaseConnection.getConnection();
-	         PreparedStatement preparedStatement = con.prepareStatement(updateUserquery)) {
-	        // Set parameters for the query based on the user object
-	        preparedStatement.setString(1, user.getUsername());
-	        preparedStatement.setString(2, user.getPassword());
-	        preparedStatement.setString(3, user.getFirstname());
-	        preparedStatement.setString(4, user.getLastname());
-	        preparedStatement.setString(5, user.getUsername()); 
-
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	    }
-	}
-	
+	// Insert newly registered user to database, default status is normal user
 	public void insertUserDB(User user) {
 	    try (Connection con = DatabaseConnection.getConnection();
 	         PreparedStatement preparedStatement = con.prepareStatement(insertUserQuery)) {
-	        // Set parameters for the insert query based on the user object
+	     
 	        preparedStatement.setString(1, user.getUsername());
 	        preparedStatement.setString(2, user.getPassword());
 	        preparedStatement.setString(3, user.getFirstname());
 	        preparedStatement.setString(4, user.getLastname());
-	        preparedStatement.setString(5, "Normal");  // Set the default status to "Normal"
+	        preparedStatement.setString(5, "Normal");  
 
-	        // Execute the insert query
-	        int rowsInserted = preparedStatement.executeUpdate();
+	        preparedStatement.executeUpdate();
 
-	        if (rowsInserted != 1) {
-	            // Handle the case where the user insert was not successful
-	            // You can log this as an error or throw a custom exception if needed
-	        }
 	    } catch (SQLException e) {
-	        // Handle any SQL-related exceptions
 	        e.printStackTrace();
-	        // You can log this as an error or throw a custom exception if needed
 	    }
 	}
 
-	
-	
+	// Update Post table when an existing user update his/her username
 	public void updatePostAuthorDB(String newUsername, String oldUsername) {
-	    try (Connection con = DatabaseConnection.getConnection();
-	         PreparedStatement preparedStatement = con.prepareStatement(updateAuthorInPostQuery)) {
-	        preparedStatement.setString(1, newUsername);
-	        preparedStatement.setString(2, oldUsername);
+		try (Connection con = DatabaseConnection.getConnection();
+				PreparedStatement preparedStatement = con.prepareStatement(updateAuthorInPostQuery)) {
+			preparedStatement.setString(1, newUsername);
+			preparedStatement.setString(2, oldUsername);
 
-	        // Execute the Post table author update query
-	        int rowsUpdated = preparedStatement.executeUpdate();
+			preparedStatement.executeUpdate();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
 
-	        if (rowsUpdated < 1) {
-	            // Handle the case where no posts were updated (optional)
-	        }
-
-	    } catch (SQLException e) {
-	        // Handle any SQL-related exceptions when updating the Post table
-	        e.printStackTrace();}
-	        // You can log this as an error or throw a custom exception if needed
-	    }
-	
-
-	
+	// Change Status to VIP when Normal User chooses to upgrade
 	public void updateUserStatusDB(User user) {
 		String username = user.getUsername();
 
 		try (Connection con = DatabaseConnection.getConnection();
 		     PreparedStatement preparedStatement = con.prepareStatement(updateUserStatusQuery)) {
-		    preparedStatement.setString(1, username);  
+			preparedStatement.setString(1, "VIP");
+		    preparedStatement.setString(2, username); 
+		    
+		    preparedStatement.executeUpdate();
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -179,25 +145,17 @@ public class Resources {
 	public void deletePostDB(Post post) {
 	    try (Connection con = DatabaseConnection.getConnection();
 	         PreparedStatement preparedStatement = con.prepareStatement(deletePostQuery)) {
-	        // Set the parameter for the postID you want to delete
 	        preparedStatement.setInt(1, post.getPostID());
 
-	        // Execute the delete query
-	        int rowsDeleted = preparedStatement.executeUpdate();
-
-	        if (rowsDeleted != 1) {
-	            // Handle the case where the post delete was not successful
-	            // You can log this as an error or throw a custom exception if needed
-	        }
+	        preparedStatement.executeUpdate();
+	        
 	    } catch (SQLException e) {
-	        // Handle any SQL-related exceptions
 	        e.printStackTrace();
-	        // You can log this as an error or throw a custom exception if needed
 	    }
 	}
 	
 	public void exportPostToFile(Post specificPost, File file) {
-		// Create a CSV string with the specific post data
+
 		StringBuilder csvContent = new StringBuilder();
 		csvContent.append("Post ID,Author ID,Content,Likes,Shares,Datetime\n");
 		csvContent.append(specificPost.getPostID()).append(",");
@@ -206,9 +164,7 @@ public class Resources {
 		csvContent.append(specificPost.getLikes()).append(",");
 		csvContent.append(specificPost.getShares()).append(",");
 		csvContent.append(specificPost.getDatetime().toString()).append("\n");
-
-
-
+		
 		try (PrintWriter writer = new PrintWriter(file)) {
 			writer.write(csvContent.toString());
 		} catch (IOException e) {
@@ -217,6 +173,87 @@ public class Resources {
 
 	}
 
+    // Update User table in case of any changes
+	public void updateUserInforDB(String newUsername, User user) {
+	    try (Connection con = DatabaseConnection.getConnection();
+	           PreparedStatement preparedStatement = con.prepareStatement(updateUserquery)) {
+	           preparedStatement.setString(1, newUsername);
+	           preparedStatement.setString(2, user.getPassword());
+	           preparedStatement.setString(3, user.getFirstname());
+	           preparedStatement.setString(4, user.getLastname());
+	           preparedStatement.setString(5, user.getUsername());
+
+	           preparedStatement.executeUpdate();
+
+	       } catch (SQLException e) {
+	    
+	           e.printStackTrace();
+	       }
+	}
+
+	// Bulk Insert Posts to DB
+	public void insertPostDB(List<Post> newPosts) {
+	    try (Connection con = DatabaseConnection.getConnection();
+	         PreparedStatement preparedStatement = con.prepareStatement(insertPostQuery)) {
+
+	        for (Post post : newPosts) {
+	            preparedStatement.setInt(1, post.getPostID());
+	            preparedStatement.setString(2, post.getContent());
+	            preparedStatement.setString(3, post.getAuthor());
+	            preparedStatement.setInt(4, post.getLikes());
+	            preparedStatement.setInt(5, post.getShares());
+	            preparedStatement.setString(6, post.getDatetime());
+	            preparedStatement.addBatch();
+	        }
+
+	        preparedStatement.executeBatch(); 
+
+	       
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	// Bulk import Posts to program
+	public List<Post> bulkImportPosts(Integer postIDStarter, User user, File file) {
+	    List<Post> newPosts = new ArrayList<>();
+
+	    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+	        String line;
+	        while ((line = reader.readLine()) != null) {
+	            String[] values = line.split("[,;]");
+
+	            if (values.length >= 3) {
+	                try {
+	                    String content = values[0];
+	                    int likes = Integer.parseInt(values[1]);
+	                    int shares = Integer.parseInt(values[2]);
+	                    
+	                    String datetime = getCurrentDatetimeAsString();
+	                    
+	                    int newPostID = postIDStarter;
+	                    postIDStarter++;
+	                    
+	                    Post newPost = new Post(newPostID, content, user.getUsername(), likes, shares, datetime);
+	                    newPosts.add(newPost);
+	                } catch (NumberFormatException | CreatingPostException e) {
+	                    e.printStackTrace(); // Handle or log the exception if needed
+	                }
+	            }
+	        }
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+
+	    return newPosts;
+	}
+
+
+	private String getCurrentDatetimeAsString() {
+	    LocalDateTime currentDateTime = LocalDateTime.now();
+	    return currentDateTime.format(formatter);
+	}
+	
 
 	
 	

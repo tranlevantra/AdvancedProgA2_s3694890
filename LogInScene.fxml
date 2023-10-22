@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 
-<GridPane alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="CalculateAreaController">
+<GridPane alignment="TOP_CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="LogInSceneController">
   <columnConstraints>
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -25,14 +25,14 @@
             <Font size="26.0" />
          </font>
       </Label>
-      <TextField fx:id="widthTextField" GridPane.columnIndex="1" />
-      <TextField fx:id="heightTextField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-      <Label fx:id="outputLabel" GridPane.columnIndex="1" GridPane.rowIndex="2">
+      <TextField fx:id="usernameTextField" GridPane.columnIndex="1" />
+      <TextField fx:id="passwordTextField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+      <Label fx:id="logInSceneExceptionLabel" GridPane.columnIndex="1" GridPane.rowIndex="2">
          <font>
             <Font size="26.0" />
          </font>
       </Label>
-      <Button fx:id="calculateButton" mnemonicParsing="false" onAction="#calculateButtonHandler" text="Log-in" GridPane.columnIndex="1" GridPane.rowIndex="3">
+      <Button mnemonicParsing="false" onAction="#logInButtonHandler" text="Log-in" GridPane.columnIndex="1" GridPane.rowIndex="3">
          <font>
             <Font size="26.0" />
          </font>
@@ -42,7 +42,7 @@
             <Font size="26.0" />
          </font>
       </Label>
-      <Button fx:id="calculateButton1" mnemonicParsing="false" onAction="#calculateButtonHandler" text="Register" GridPane.rowIndex="3">
+      <Button mnemonicParsing="false" onAction="#switchRegisterSceneButtonHandler" text="Register" GridPane.rowIndex="3">
          <font>
             <Font size="26.0" />
          </font>

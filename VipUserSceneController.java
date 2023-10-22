@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -14,7 +15,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -23,7 +24,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-public class NormalUserSceneController implements Initializable {
+public class VipUserSceneController implements Initializable {
 
 	private Resources resources = new Resources();
 
@@ -69,9 +70,7 @@ public class NormalUserSceneController implements Initializable {
 		this.userPosts = userPosts;
 
 		updateTableView(userPosts);
-
-		welcomeMessageTextLabel.setText("Welcome " + user.getFirstname() + " " + user.getLastname());
-
+		setWelcomeMessage();
 	}
 
 	// Dynamic show posts in tableView
@@ -88,7 +87,7 @@ public class NormalUserSceneController implements Initializable {
 
 	}
 
-	// Show ONE post on TableView using PostID from postIDTextfield 
+	// Show ONE post on TableView using PostID from postIDTextfield
 	@FXML
 	public void showSpecificPostHandler() throws ExistingException {
 		if (validatePostID(postIDTextField, postIDExceptionLabel)) {
@@ -100,11 +99,13 @@ public class NormalUserSceneController implements Initializable {
 
 		}
 	}
-	// Show a subset of UserPosts, quantity to subset is specified with Quantity Text field input
+
+	// Show a subset of UserPosts, quantity to subset is specified with Quantity
+	// Text field input
 	@FXML
 	public void showSubUserPostsHandler() {
-		
-		quantityExceptionLabel.setText("");
+		quantityExceptionLabel.setText(""); // Clear any previous error message
+
 		String quantityText = quantityTextField.getText();
 
 		if (quantityText.isEmpty()) {
@@ -122,12 +123,13 @@ public class NormalUserSceneController implements Initializable {
 
 			int actualQuantity = Math.min(userPosts.size(), wantedQuantity);
 			List<Post> toDisplayList = userPosts.subList(0, actualQuantity);
+
 			updateTableView(toDisplayList);
+
 		} catch (NumberFormatException e) {
 			quantityExceptionLabel.setText("Invalid quantity: Please enter a non-negative number.");
 		}
 	}
-	
 
 	// Delete ONE POST using postID obtained from postIDTextField
 	@FXML
@@ -136,14 +138,13 @@ public class NormalUserSceneController implements Initializable {
 			int targetPostID = Integer.parseInt(postIDTextField.getText());
 			Post specificPost = findPost(targetPostID);
 
-			resources.deletePostDB(specificPost); // Delete from Database 
-			postMap.remove(specificPost.getPostID());// Remove from PostMap
-			userPosts.remove(specificPost);// Remove from UserPost list
+			resources.deletePostDB(specificPost);
+			postMap.remove(specificPost.getPostID());
+			userPosts.remove(specificPost);
 
 			updateTableView(userPosts);
 		}
 	}
-	
 
 	// Export ONE Post using postID obtained from postIDTextField
 	@FXML
@@ -160,7 +161,16 @@ public class NormalUserSceneController implements Initializable {
 			}
 		}
 	}
-	
+
+	// Log-out
+	@FXML
+	public void logOutButtonHandler(ActionEvent event) {
+
+		secondaryStage.close();
+
+		primaryStage.close();
+
+	}
 
 	// Handler method to Update User Information on Secondary Stage
 	@FXML
@@ -168,11 +178,12 @@ public class NormalUserSceneController implements Initializable {
 
 		UpdateUserInforScene updateUserInforScene = new UpdateUserInforScene(userMap, user, userPosts,
 				welcomeMessageTextLabel);
-
 		secondaryStage.setTitle(updateUserInforScene.getTitle());
 		secondaryStage.setScene(updateUserInforScene.getScene());
 
 		secondaryStage.show();
+
+		setWelcomeMessage();
 	}
 
 	// Handler method to Add ONE post on Secondary Stage
@@ -180,61 +191,125 @@ public class NormalUserSceneController implements Initializable {
 	public void switchAddAPostStage(ActionEvent event) {
 
 		AddAPostScene addAPostScene = new AddAPostScene(postMap, user, userPosts);
-
 		secondaryStage.setTitle(addAPostScene.getTitle());
 		secondaryStage.setScene(addAPostScene.getScene());
 
 		secondaryStage.show();
 
 		updateTableView(userPosts);
+
 	}
 
-	// Handler method to Upgrade User status on Secondary Stage
+	// Handler method to Import MULTIPLE posts on secondary stage
 	@FXML
-	public void upgradeUserSceneHandler(ActionEvent event) {
-		Label messageLabel = new Label("Upgrade your account to VIP for free?");
-		messageLabel.setStyle("-fx-font-size: 18; -fx-font-weight: bold;");
+	public void bulkImportPostsHandler() {
 
-		Button upgradeButton = new Button("Upgrade");
-		upgradeButton.setVisible(true);
+		secondaryStage.close();
+		// Allow the user to choose a file on the secondaryStage
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Choose a CSV file for bulk import");
+		fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
 
-		upgradeButton.setOnAction(e -> {
-			// Button to Upgrade the user's status to VIP
-			resources.updateUserStatusDB(user);
+		File file = fileChooser.showOpenDialog(secondaryStage);
 
-			messageLabel.setText("Upgrade successful! Please Log-out and Sign-in agains");
-			upgradeButton.setVisible(false);
-		});
+		if (file != null) {
+			int newPostIDStarter = calculateNewPostID();
 
-		VBox vbox = new VBox(20, messageLabel, upgradeButton);
-		vbox.setAlignment(Pos.CENTER);
+			List<Post> newlyImportedPosts = resources.bulkImportPosts(newPostIDStarter, user, file);
 
-		Scene scene = new Scene(vbox, 400, 200);
+			if (newlyImportedPosts != null && !newlyImportedPosts.isEmpty()) {
+				userPosts.addAll(newlyImportedPosts);
+				for (Post post : newlyImportedPosts) {
+					postMap.put(post.getPostID(), post);
+				}
 
-		secondaryStage.setScene(scene);
-		secondaryStage.setTitle("Upgrade User");
+				resources.insertPostDB(newlyImportedPosts);
+				updateTableView(userPosts);
+			}
+		}
+	}
+
+	// Handler method to Analyze post by Shares on Secondary Stage
+	@FXML
+	public void analyseButtonHandler() {
+		List<Integer> components = countNoShares();
+
+		int totalPosts = components.get(0) + components.get(1) + components.get(2);
+
+		if (totalPosts == 0) {
+			// If there are no posts to analyze, display a message
+			Label noPostsLabel = new Label("No post to analyze");
+			noPostsLabel.setStyle("-fx-font-size: 16; -fx-font-weight: bold;");
+
+			VBox vbox = new VBox(noPostsLabel);
+			vbox.setAlignment(Pos.CENTER);
+
+			Scene scene = new Scene(vbox, 400, 200);
+
+			secondaryStage.setScene(scene);
+			secondaryStage.setTitle("Shares Analysis");
+		} else {
+			// If there are posts, create and show the pie chart
+			PieChart pieChart = new PieChart();
+
+			PieChart.Data redComponent = new PieChart.Data("0-99", components.get(0));
+			PieChart.Data blueComponent = new PieChart.Data("100-999", components.get(1));
+			PieChart.Data greenComponent = new PieChart.Data("1000+", components.get(2));
+
+			pieChart.getData().addAll(redComponent, blueComponent, greenComponent);
+
+			Scene scene = new Scene(pieChart, 600, 400);
+
+			secondaryStage.setScene(scene);
+			secondaryStage.setTitle("Shares Analysis");
+		}
 
 		secondaryStage.show();
 	}
 
-	// Handler method of Logout button
-	@FXML
-	public void logOutButtonHandler(ActionEvent event) {
+	// Helper class
 
-		secondaryStage.close();
+	// Creating A list of counts for 3 components
+	private List<Integer> countNoShares() {
+		List<Integer> components = new ArrayList<>(3);
+		components.add(0);
+		components.add(0);
+		components.add(0);
 
-		primaryStage.close();
+		for (Post post : postMap.values()) {
+			int shares = post.getShares();
+			if (shares >= 0 && shares <= 99) {
+				components.set(0, components.get(0) + 1);
+			} else if (shares >= 100 && shares <= 999) {
+				components.set(1, components.get(1) + 1);
+			} else if (shares >= 1000) {
+				components.set(2, components.get(2) + 1);
+			}
+		}
+
+		return components;
 	}
 
-	
-	// Helper methods
-	
-	// Dynamic update TableView
+	// Auto generate PostID by incrementing Max PostID from current PostMap
+	private int calculateNewPostID() {
+		int maxID = 0;
+		for (int postID : postMap.keySet()) {
+			maxID = Math.max(maxID, postID);
+		}
+		return maxID + 1;
+	}
+
 	private void updateTableView(List<Post> userPosts) {
 		observableUserPosts.setAll(userPosts);
 	}
-	
-	// Find Post in userPosts
+
+	private void setWelcomeMessage() {
+		if (user != null) {
+			String fullName = user.getFirstname() + " " + user.getLastname();
+			welcomeMessageTextLabel.setText("Welcome, " + fullName);
+		}
+	}
+
 	private Post findPost(int targetPostID) throws ExistingException {
 		Post specificPost = null;
 
@@ -246,40 +321,11 @@ public class NormalUserSceneController implements Initializable {
 		}
 
 		if (specificPost == null) {
-			throw new ExistingException("Post not found");
+			throw new ExistingException("Post not found.");
 		}
 		return specificPost;
 	}
 
-	// Validate the Post ID entered in the text field
-	private boolean validatePostID(TextField postIDTextField, Label postIDExceptionLabel) {
-		postIDExceptionLabel.setText("");
-		String postIDText = postIDTextField.getText();
-
-		// PostID field must not be empty
-		if (postIDText.isEmpty()) {
-			postIDExceptionLabel.setText("Post ID is empty. Please enter a valid number.");
-
-			return false;
-		}
-
-		try {
-			int targetPostID = Integer.parseInt(postIDText); // And must be a valid number
-			findPost(targetPostID); // to find Post
-
-			return true;
-
-		} catch (NumberFormatException e) {
-			postIDExceptionLabel.setText("Invalid post ID: Please enter a valid number.");
-		} catch (ExistingException e) {
-
-			postIDExceptionLabel.setText(e.getMessage());
-		}
-
-		return false;
-	}
-	
-	// Show FileChooser on Secondary Stage to Export ONE Post
 	public File getSaveFileDialog(String initialFileName) {
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.setTitle("Export Post");
@@ -288,4 +334,24 @@ public class NormalUserSceneController implements Initializable {
 		fileChooser.getExtensionFilters().add(csvFilter);
 		return fileChooser.showSaveDialog(secondaryStage);
 	}
+
+	private boolean validatePostID(TextField postIDTextField, Label postIDExceptionLabel) {
+		postIDExceptionLabel.setText(""); // Clear any previous error message
+		String postIDText = postIDTextField.getText();
+		if (postIDText.isEmpty()) {
+			postIDExceptionLabel.setText("Post ID is empty. Please enter a valid number.");
+			return false;
+		}
+		try {
+			int targetPostID = Integer.parseInt(postIDText);
+			findPost(targetPostID);
+			return true;
+		} catch (NumberFormatException e) {
+			postIDExceptionLabel.setText("Invalid post ID: Please enter a valid number.");
+		} catch (ExistingException e) {
+			postIDExceptionLabel.setText(e.getMessage());
+		}
+		return false;
+	}
+
 }

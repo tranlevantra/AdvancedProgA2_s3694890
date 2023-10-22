@@ -1,4 +1,5 @@
 import java.io.IOException;
+import java.util.HashMap;
 
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -8,12 +9,16 @@ import javafx.stage.Stage;
 public class LogInScene {
 	
 	private Stage primaryStage;
+    private Stage secondaryStage;
+    private HashMap<String, User> userMap;
+    private HashMap<Integer, Post> postMap;
 	
-	private Scene scene;
 	
-	public LogInScene(Stage primaryStage) {
+	public LogInScene(Stage primaryStage, Stage secondaryStage, HashMap<String, User> userMap, HashMap<Integer, Post> postMap) {
 		this.primaryStage = primaryStage;
-		scene = null;
+		this.secondaryStage = secondaryStage;
+		this.userMap = userMap;
+		this.postMap = postMap;
 	}
 	
 
@@ -23,14 +28,8 @@ public class LogInScene {
 	
 	public Scene getScene() {
 		
-		if(scene != null) {
-			return scene;
-		}
-		
-		// load FXML
 		FXMLLoader loader = new FXMLLoader(getClass().getResource("LogInScene.fxml"));
 				
-		// load the FXML
 		Parent parentNode = null;
 		try {
 			parentNode = loader.load();
@@ -39,10 +38,9 @@ public class LogInScene {
 		}
 		
 		LogInSceneController controller = loader.getController();
-		controller.setPrimaryStage(primaryStage);
-
+		controller.setPrimaryStage(primaryStage, secondaryStage, userMap, postMap);
 		
-		// create a scene
+
 		Scene scene = new Scene(parentNode);
 		
 		return scene;

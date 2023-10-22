@@ -14,13 +14,13 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="NormalUserSceneController">
+<AnchorPane xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="VipUserSceneController">
    <children>
       <MenuBar layoutX="6.0" layoutY="7.0">
         <menus>
           <Menu mnemonicParsing="false" text="Home">
             <items>
-              <MenuItem mnemonicParsing="false" onAction="#upgradeUserSceneHandler" text="Upgrade" />
+              <MenuItem mnemonicParsing="false" onAction="#analyseButtonHandler" text="Analyze" />
                   <MenuItem mnemonicParsing="false" onAction="#switchUpdateUserInforStageHandler" text="Update" />
                   <MenuItem mnemonicParsing="false" onAction="#logOutButtonHandler" text="Log-out" />
             </items>
@@ -77,9 +77,10 @@
                               <MenuItem mnemonicParsing="false" onAction="#deletePostHandler" text="Delete" />
                            </items>
                       </Menu>
-                      <Menu mnemonicParsing="false" text="Add">
+                      <Menu mnemonicParsing="false" onAction="#switchAddAPostStage" text="Add">
                            <items>
                               <MenuItem mnemonicParsing="false" onAction="#switchAddAPostStage" text="Add" />
+                              <MenuItem mnemonicParsing="false" onAction="#bulkImportPostsHandler" text="Bulk Import" />
                            </items>
                       </Menu>
                       <Menu mnemonicParsing="false" text="Export">
